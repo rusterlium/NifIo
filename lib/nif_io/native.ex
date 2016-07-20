@@ -1,3 +1,15 @@
+defmodule NifIo.Native.FileOpenOptions do
+  defstruct [
+    path: nil,
+    read: true,
+    write: true,
+    append: false,
+    truncate: false,
+    create: true,
+    create_new: false,
+  ]
+end
+
 defmodule NifIo.Native do
   require Rustler
 
@@ -9,7 +21,7 @@ defmodule NifIo.Native do
 
   defp err, do: throw :nif_not_loaded
 
-  def open_read_file(_path), do: err
-  def read_line(_resource), do: err
+  def open(_options), do: err
+  def read_until(_resource, _byte), do: err
 
 end
