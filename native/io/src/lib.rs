@@ -50,7 +50,11 @@ fn read_line<'a>(env: &'a NifEnv, args: &Vec<NifTerm>) -> NifResult<NifTerm<'a>>
     let mut resource_struct = resource.write().unwrap();
 
     let mut ret_string = String::new();
-    resource_struct.reader.read_line(&mut ret_string).unwrap();
+    let len = resource_struct.reader.read_line(&mut ret_string).unwrap();
+    if len == 0 {
+        Ok(0.encode(env))
+    } else {
+        Ok(ret_string.encode(env))
+    }
 
-    Ok(ret_string.encode(env))
 }
