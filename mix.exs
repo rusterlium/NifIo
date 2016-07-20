@@ -8,7 +8,7 @@ defmodule NifIo.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      compilers: [:rustler] ++ Mix.compilers,
-     rustler_crates: ["native/io"],
+     rustler_crates: ["/native/io"],
      deps: deps()]
   end
 
@@ -29,6 +29,6 @@ defmodule NifIo.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:rustler, "~> 0.1.0"}]
+    [{:rustler, "~> 0.1.1"}]
   end
 end
