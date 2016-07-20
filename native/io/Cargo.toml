@@ -1,0 +1,14 @@
+[package]
+name = "io"
+version = "0.1.0"
+authors = ["HansiHE <hansihe@hansihe.com>"]
+
+[lib]
+name = "io"
+path = "src/lib.rs"
+crate-type = ["dylib"]
+
+[dependencies]
+rustler = "=0.9.1"
+rustler_codegen = "=0.9.1"
+

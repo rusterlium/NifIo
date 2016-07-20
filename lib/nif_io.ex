@@ -1,0 +1,2 @@
+defmodule NifIo do
+end
