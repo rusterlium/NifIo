@@ -11,17 +11,10 @@ defmodule NifIo.Native.FileOpenOptions do
 end
 
 defmodule NifIo.Native do
-  require Rustler
+  use Rustler, otp_app: :nif_io, crate: :io
 
-  @on_load :load_nif
+  def open(_options), do: error()
+  def read_until(_resource, _byte), do: error()
 
-  def load_nif do
-    Rustler.load_nif("io")
-  end
-
-  defp err, do: throw :nif_not_loaded
-
-  def open(_options), do: err
-  def read_until(_resource, _byte), do: err
-
+  defp error, do: :erlang.nif_error(:nif_not_loaded)
 end
