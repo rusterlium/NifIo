@@ -18,3 +18,5 @@ erl_crash.dump
 
 /native/io/Cargo.lock
 /native/io/target
+
+/priv/native/*.so
