@@ -2,14 +2,14 @@
 name = "io"
 version = "0.1.0"
 authors = ["HansiHE <hansihe@hansihe.com>"]
+edition = "2018"
 
 [lib]
 name = "io"
 path = "src/lib.rs"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
-rustler = { git = "https://github.com/hansihe/rustler", branch = "remove_nif_from_types"}
-rustler_codegen = { git = "https://github.com/hansihe/rustler", branch = "remove_nif_from_types"}
+rustler = "0.22.0-rc.0"
 bufstream = "0.1.2"
 lazy_static = "1.0.0"
