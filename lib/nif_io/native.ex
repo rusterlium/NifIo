@@ -1,13 +1,11 @@
 defmodule NifIo.Native.FileOpenOptions do
-  defstruct [
-    path: nil,
-    read: true,
-    write: true,
-    append: false,
-    truncate: false,
-    create: true,
-    create_new: false,
-  ]
+  defstruct path: nil,
+            read: true,
+            write: true,
+            append: false,
+            truncate: false,
+            create: true,
+            create_new: false
 end
 
 defmodule NifIo.Native do

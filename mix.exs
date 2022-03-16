@@ -8,9 +8,7 @@ defmodule NifIo.Mixfile do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
-      compilers: [:rustler] ++ Mix.compilers(),
-      rustler_crates: rustler_crates()
+      aliases: aliases()
     ]
   end
 
@@ -22,21 +20,9 @@ defmodule NifIo.Mixfile do
 
   defp deps do
     [
-      {:rustler, "~> 0.22-rc"}
+      {:rustler, "~> 0.24.0"}
     ]
   end
-
-  defp rustler_crates do
-    [
-      io: [
-        path: "native/io",
-        mode: rustc_mode(Mix.env())
-      ]
-    ]
-  end
-
-  defp rustc_mode(:prod), do: :release
-  defp rustc_mode(_), do: :debug
 
   defp aliases do
     [
