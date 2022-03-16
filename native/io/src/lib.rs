@@ -1,33 +1,26 @@
-extern crate bufstream;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate rustler;
-#[macro_use]
-extern crate rustler_codegen;
-
 use std::fs::{File, OpenOptions};
-use std::io::{BufRead, Write};
 use std::io::Error as IoError;
 use std::io::ErrorKind as IoErrorKind;
+use std::io::{BufRead, Write};
 use std::sync::Mutex;
 
 use bufstream::BufStream;
-use rustler::{Env, Term, Error, Encoder};
 use rustler::types::OwnedBinary;
-use rustler::resource::ResourceArc;
+use rustler::{Atom, Env, Error, NifStruct, ResourceArc, Term};
 
 mod atoms {
-    rustler_atoms! {
-        //atom ok;
-        atom error;
-        atom eof;
+    rustler::atoms! {
+        ok,
+        error,
+        eof,
 
         // Posix
-        atom enoent; // File does not exist
-        atom eacces; // Permission denied
-        atom epipe;  // Broken pipe
-        atom eexist; // File exists
+        enoent, // File does not exist
+        eacces, // Permission denied
+        epipe, // Broken pipe
+        eexist, // File exists
+
+        unknown // Other error
     }
 }
 
@@ -48,43 +41,33 @@ struct FileOpenOptions {
     pub create_new: bool,
 }
 
-rustler_export_nifs!(
-    "Elixir.NifIo.Native",
-    [("open", 1, open_file),
-     ("read_until", 2, read_until)],
-    Some(on_load)
-);
-
-
-fn on_load(env: Env, _info: Term) -> bool {
-    resource_struct_init!(FileResource, env);
+fn load(env: Env, _: Term) -> bool {
+    rustler::resource!(FileResource, env);
     true
 }
 
-fn io_error_to_term<'a>(env: Env<'a>, err: &IoError) -> Term<'a> {
-    let error = match err.kind() {
-        IoErrorKind::NotFound => atoms::enoent().encode(env),
-        IoErrorKind::PermissionDenied => atoms::eacces().encode(env),
-        IoErrorKind::BrokenPipe => atoms::epipe().encode(env),
-        IoErrorKind::AlreadyExists => atoms::eexist().encode(env),
-        _ => format!("{}", err).encode(env),
-    };
-
-    (atoms::error(), error).encode(env)
+fn io_error_to_term(err: &IoError) -> Atom {
+    match err.kind() {
+        IoErrorKind::NotFound => atoms::enoent(),
+        IoErrorKind::PermissionDenied => atoms::eacces(),
+        IoErrorKind::BrokenPipe => atoms::epipe(),
+        IoErrorKind::AlreadyExists => atoms::eexist(),
+        // _ => format!("{}", err).to_term(env),
+        _ => atoms::unknown(),
+    }
 }
 
 macro_rules! handle_io_error {
-    ($env:expr, $e:expr) => {
+    ($e:expr) => {
         match $e {
             Ok(inner) => inner,
-            Err(ref error) => return Ok(io_error_to_term($env, error)),
+            Err(ref error) => return Err(Error::Term(Box::new(io_error_to_term(error)))),
         }
     };
 }
 
-fn open_file<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let options: FileOpenOptions = args[0].decode()?;
-
+#[rustler::nif]
+fn open(options: FileOpenOptions) -> Result<ResourceArc<FileResource>, Error> {
     let file_result = OpenOptions::new()
         .read(options.read)
         .write(options.write)
@@ -93,30 +76,34 @@ fn open_file<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
         .create(options.create)
         .create_new(options.create_new)
         .open(&options.path);
-    let file = handle_io_error!(env, file_result);
+    let file = handle_io_error!(file_result);
 
     let resource = ResourceArc::new(FileResource {
         stream: Mutex::new(BufStream::new(file)),
         options: options,
     });
 
-    Ok(resource.encode(env))
+    Ok(resource)
 }
 
-fn read_until<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<FileResource> = args[0].decode()?;
-    let until_byte: u8 = args[1].decode()?;
-
+#[rustler::nif]
+fn read_until(
+    env: Env,
+    resource: ResourceArc<FileResource>,
+    until_byte: u8,
+) -> Result<Term, Error> {
     let mut resource_struct = resource.stream.try_lock().unwrap();
 
     let mut data_out = Vec::new();
-    let len = handle_io_error!(env, resource_struct.read_until(until_byte, &mut data_out));
+    let len = handle_io_error!(resource_struct.read_until(until_byte, &mut data_out));
 
     if len == 0 {
-        Ok(atoms::eof().encode(env))
+        Ok(atoms::eof().to_term(env))
     } else {
         let mut binary = OwnedBinary::new(data_out.len()).unwrap();
         let _ = binary.as_mut_slice().write_all(&data_out);
-        Ok(binary.release(env).encode(env))
+        Ok(binary.release(env).to_term(env))
     }
 }
+
+rustler::init!("Elixir.NifIo.Native", [open, read_until], load = load);
