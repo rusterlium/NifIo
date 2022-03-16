@@ -26,7 +26,6 @@ mod atoms {
 
 struct FileResource {
     pub stream: Mutex<BufStream<File>>,
-    pub options: FileOpenOptions,
 }
 
 #[derive(NifStruct)]
@@ -52,7 +51,6 @@ fn io_error_to_term(err: &IoError) -> Atom {
         IoErrorKind::PermissionDenied => atoms::eacces(),
         IoErrorKind::BrokenPipe => atoms::epipe(),
         IoErrorKind::AlreadyExists => atoms::eexist(),
-        // _ => format!("{}", err).to_term(env),
         _ => atoms::unknown(),
     }
 }
@@ -80,7 +78,6 @@ fn open(options: FileOpenOptions) -> Result<ResourceArc<FileResource>, Error> {
 
     let resource = ResourceArc::new(FileResource {
         stream: Mutex::new(BufStream::new(file)),
-        options: options,
     });
 
     Ok(resource)

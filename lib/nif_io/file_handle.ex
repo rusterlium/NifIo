@@ -7,13 +7,13 @@ defmodule NifIo.FileHandle do
     # empty binary with no warning. This will make that harder to
     # accidentaly do.
     # It also serves as a handy way to tell file handles apart.
-    reference: nil,
+    reference: nil
   ]
 
   def wrap_resource(resource) do
     %__MODULE__{
       resource: resource,
-      reference: make_ref(),
+      reference: make_ref()
     }
   end
 end
@@ -22,6 +22,6 @@ defimpl Inspect, for: NifIo.FileHandle do
   import Inspect.Algebra
 
   def inspect(dict, opts) do
-    concat ["#NifIo.FileHandle<", to_doc(dict.reference, opts), ">"]
+    concat(["#NifIo.FileHandle<", to_doc(dict.reference, opts), ">"])
   end
 end
