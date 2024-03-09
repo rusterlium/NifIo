@@ -20,7 +20,7 @@ defmodule NifIo.Mixfile do
 
   defp deps do
     [
-      {:rustler, "~> 0.25.0"}
+      {:rustler, "~> 0.31.0"}
     ]
   end
 
